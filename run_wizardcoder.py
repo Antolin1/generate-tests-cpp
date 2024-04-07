@@ -1,25 +1,14 @@
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer, set_seed
 
-func = """bool has_close_elements(vector<float> numbers, float threshold){
-    int i,j;
-    for (i=0;i<numbers.size();i++)
-        for (j=i+1;j<numbers.size();j++)
-            if (abs(numbers[i]-numbers[j])<threshold)
-                return true;
-    return false;
-}"""
-func_name = "has_close_elements"
-doc = "Check if in given vector of numbers, are any two numbers closer to each other than given threshold."
+from example_function import FUNC, FUNC_NAME
+from templates import WIZARD_TEMPLATE
 
+set_seed(123)
 
-problem_prompt = (
-            "Below is an instruction that describes a task. "
-            "Write a response that appropriately completes the request.\n\n"
-            "### Instruction:\nWrite four google tests that this function passes:\n{func}\n\n### Response:\nTEST({func_name},"
-        )
-prompt = problem_prompt.format(func=func,
-                               func_name=func_name)
+prompt = WIZARD_TEMPLATE.format(func=FUNC,
+                                func_name=FUNC_NAME,
+                                num=5)
 
 tokenizer = AutoTokenizer.from_pretrained("WizardLM/WizardCoder-3B-V1.0")
 model = AutoModelForCausalLM.from_pretrained("WizardLM/WizardCoder-3B-V1.0", device_map="auto",
@@ -33,7 +22,7 @@ with torch.no_grad():
         do_sample=True,
         max_new_tokens=1024,
         num_return_sequences=1,
-        temperature=0.4,
+        temperature=0.2,
         pad_token_id=tokenizer.eos_token_id,
         eos_token_id=tokenizer.eos_token_id
     )

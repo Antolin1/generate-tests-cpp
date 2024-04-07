@@ -1,41 +1,20 @@
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer, set_seed
 
-# dataset = load_dataset("THUDM/humaneval-x", "cpp")["test"]
-# print(dataset[0]['canonical_solution'])
+from example_function import FUNC, FUNC_NAME, DOCUMENTATION
+from templates import DS_TEMPLATE_DOC
 
-
-func = """bool has_close_elements(vector<float> numbers, float threshold){
-    int i,j;
-    for (i=0;i<numbers.size();i++)
-        for (j=i+1;j<numbers.size();j++)
-            if (abs(numbers[i]-numbers[j])<threshold)
-                return true;
-    return false;
-}"""
-func_name = "has_close_elements"
-doc = "Check if in given vector of numbers, are any two numbers closer to each other than given threshold."
-
-print(func)
+set_seed(123)
 
 tokenizer = AutoTokenizer.from_pretrained("deepseek-ai/deepseek-coder-1.3b-base")
 model = AutoModelForCausalLM.from_pretrained("deepseek-ai/deepseek-coder-1.3b-base", device_map="auto",
                                              torch_dtype=torch.float16)
 
-PROMPT_TEMPLATE = """
-{func}
-// tests
-TEST({func_name},"""
+prompt = DS_TEMPLATE_DOC.format(func=FUNC,
+                                func_name=FUNC_NAME,
+                                doc=DOCUMENTATION,
+                                num=5)
 
-PROMPT_TEMPLATE_DOC = """
-// {doc}
-{func}
-// tests
-TEST({func_name},"""
-
-prompt = PROMPT_TEMPLATE_DOC.format(func=func,
-                                    func_name=func_name,
-                                    doc=doc)
 sample = tokenizer([prompt], return_tensors="pt")
 
 with torch.no_grad():
@@ -43,9 +22,9 @@ with torch.no_grad():
         input_ids=sample["input_ids"].cuda(),
         attention_mask=sample["attention_mask"].cuda(),
         do_sample=True,
-        max_new_tokens=512,
+        max_new_tokens=1024,
         num_return_sequences=1,
-        temperature=0.4,
+        temperature=0.2,
         pad_token_id=tokenizer.eos_token_id,
         eos_token_id=tokenizer.eos_token_id
     )
