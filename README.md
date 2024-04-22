@@ -1,4 +1,5 @@
 
+
 # generate-tests-cpp
 
 
@@ -9,7 +10,7 @@ to generate C++ unit tests:
 - `templates.py` comprises the prompt templates tailored for the open-source models.
 - `run_model_name.py` includes the scripts for executing the generation process using the example provided. Currently, only WizardCoder and DeepSeek Coder base models are supported.
 
-## Running the generation
+## Running the test generation
 
 To run the generation, just run the following
 ```shell
@@ -66,4 +67,13 @@ TEST(has_close_elements, all_different_test) {
     float threshold = 0.1;
     EXPECT_FALSE(has_close_elements(numbers, threshold));
 }
+```
+
+## Running the HumanEval generation
+
+The `run_wizardcoder_humaneval.py` script generates 5 functions for the first prompt of the HumanEval dataset.
+It also executes the code snippets using the test sets of the same dataset.
+
+```shell
+python run_wizardcoder_humaneval.py
 ```
